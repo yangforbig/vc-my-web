@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { tokens } from '../../design-system/index.js';
 import { portfolioData } from '../data/portfolio';
 import avatarImage from '../assets/images/Noma.png';
+import Galaxy from '../effects/Galaxy.jsx';
 
 const AvatarHero = ({ className }) => {
   const [clickedSkills, setClickedSkills] = useState(new Set());
@@ -21,6 +22,8 @@ const AvatarHero = ({ className }) => {
       });
     }
   };
+
+
 
   const getDisplaySkill = (skill) => {
     if (skill.includes('吹牛逼') && clickedSkills.has(skill)) {
@@ -68,24 +71,47 @@ const AvatarHero = ({ className }) => {
       
       <motion.section 
         className={clsx(
-          'relative min-h-[60vh] flex flex-col items-center justify-center',
+          'relative h-screen flex flex-col items-center justify-center',
           'overflow-hidden',
           className
         )}
         style={{
           backgroundColor: tokens.colors.background.primary,
-          color: tokens.colors.primary.text
+          color: tokens.colors.primary.text,
+          pointerEvents: 'auto' // Ensure section can receive mouse events
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
+
       >
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_50%)] z-1" />
+      
+      {/* Galaxy Background - Interactive Version */}
+      <div className="absolute inset-0 z-5">
+        <Galaxy
+          disableAnimation={false}
+          mouseInteraction={true}
+          speed={0.3}
+          starSpeed={0.2}
+          rotationSpeed={0.01}
+          twinkleIntensity={0.1}
+          density={3}
+          glowIntensity={0.2}
+          saturation={0.0}
+          hueShift={220}
+          transparent={true}
+          mouseRepulsion={true}
+          repulsionStrength={2.0}
+          focal={[0.5, 0.5]}
+        />
+      </div>
       
       {/* Avatar Container */}
       <motion.div
-        className="relative z-10 text-center"
+        className="relative z-20 text-center"
+        style={{ pointerEvents: 'none' }}
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.2 }}
@@ -93,11 +119,11 @@ const AvatarHero = ({ className }) => {
         {/* Avatar Container */}
         <div className="relative flex flex-col items-center">
           {/* Solar System Container */}
-          <div className="relative w-96 h-96 mb-8">
+          <div className="relative w-96 h-96 mb-12">
             {/* Avatar at Center (The Sun) */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
               <div className={clsx(
-                'w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64',
+                'w-64 h-64 md:w-72 md:h-72 lg:w-80 lg:h-80',
                 'rounded-full',
                 'border-4 shadow-xl',
                 'relative overflow-hidden'
@@ -154,105 +180,100 @@ const AvatarHero = ({ className }) => {
               </div>
             </div>
 
-            {/* Orbiting Skills (The Planets) - With Bounce Physics */}
+            {/* Orbiting Skills - Safe Orbits */}
             {portfolioData.personal.tagline.split(' · ').map((skill, index) => {
               const totalSkills = portfolioData.personal.tagline.split(' · ').length;
-              const avatarRadius = 120; // Avatar collision radius
-              const baseRadius = 150 + (index * 35); // Base orbital radius
-              const speed = 20 + (index * 1.5); // Animation speed
-              const startAngle = (360 / totalSkills) * index + (index * 30);
               
-              // Create bounce effect by modifying the orbital path when close to avatar
-              const createBounceKeyframes = () => {
-                const keyframes = [];
-                const steps = 8; // More steps for smoother animation
-                
-                for (let i = 0; i <= steps; i++) {
-                  const angle = startAngle + (i * 360 / steps);
-                  const radians = (angle * Math.PI) / 180;
-                  
-                  let x = Math.cos(radians) * baseRadius;
-                  let y = Math.sin(radians) * (baseRadius * 0.7); // Oval shape
-                  
-                  // Check distance from center (avatar)
-                  const distanceFromCenter = Math.sqrt(x * x + y * y);
-                  
-                  // If too close to avatar, bounce away
-                  if (distanceFromCenter < avatarRadius + 40) {
-                    const bounceMultiplier = 1.8; // How much to bounce
-                    const normalizedX = x / distanceFromCenter;
-                    const normalizedY = y / distanceFromCenter;
-                    
-                    x = normalizedX * (avatarRadius + 40) * bounceMultiplier;
-                    y = normalizedY * (avatarRadius + 40) * bounceMultiplier;
-                  }
-                  
-                  keyframes.push({ x, y });
-                }
-                
-                return keyframes;
-              };
+              // Elliptical orbit calculations - use full rectangular hero section
+              const avatarRadius = 160; // Avatar max radius (lg:w-80 = 320px diameter)
+              const safetyBuffer = 80; // Minimum safety buffer
               
-              const bounceKeyframes = createBounceKeyframes();
+              // Elliptical orbits - wider horizontally to use full screen width
+              const minRadiusX = avatarRadius + safetyBuffer; // 240px minimum horizontal
+              const maxRadiusX = 550; // Use most of screen width (~1200px)
+              const minRadiusY = avatarRadius + safetyBuffer; // 240px minimum vertical  
+              const maxRadiusY = 350; // Use hero section height efficiently
+              
+              // Distribute elliptical orbits
+              const radiusX = minRadiusX + (index / (totalSkills - 1)) * (maxRadiusX - minRadiusX);
+              const radiusY = minRadiusY + (index / (totalSkills - 1)) * (maxRadiusY - minRadiusY);
+              
+              // Different speeds to prevent clustering
+              const speed = 20 + (index * 4); // Varied speeds
+              
+              // Stagger starting positions to spread them out
+              const startAngle = (index / totalSkills) * 360 + (index * 45);
               
               return (
                 <motion.div
-                  key={index}
-                  className={clsx(
-                    "absolute",
-                    skill.includes('吹牛逼') ? "pointer-events-auto" : "pointer-events-none"
-                  )}
+                  key={skill}
+                  className="absolute z-25"
                   style={{
                     left: '50%',
                     top: '50%',
                     transform: 'translate(-50%, -50%)',
-                    zIndex: 5
+                    pointerEvents: 'auto'
                   }}
-                  animate={{
-                    x: bounceKeyframes.map(kf => kf.x),
-                    y: bounceKeyframes.map(kf => kf.y),
+                  initial={{ 
+                    opacity: 0,
+                    scale: 0
                   }}
-                  transition={{
-                    duration: speed,
-                    repeat: Infinity,
-                    ease: "linear"
+                  animate={{ 
+                    opacity: 1,
+                    scale: 1
+                  }}
+                  transition={{ 
+                    duration: 0.8,
+                    delay: index * 0.2,
+                    ease: "easeOut"
                   }}
                 >
-                  <motion.span
-                    className={clsx(
-                      "text-lg font-medium px-4 py-3 rounded-full whitespace-nowrap inline-block",
-                      skill.includes('吹牛逼') && "cursor-pointer transition-all duration-300"
-                    )}
-                    style={{
-                      ...getSkillStyle(skill),
-                      fontSize: '1.125rem',
-                      backdropFilter: 'blur(4px)',
-                      boxShadow: `0 2px 8px ${tokens.colors.background.primary}66`
-                    }}
-                    // Add a subtle bounce animation to the tagline itself when it bounces
+                  <motion.div
                     animate={{
-                      scale: skill.includes('吹牛逼') && clickedSkills.has(skill) 
-                        ? [1, 1.2, 1, 1.2, 1, 1, 1, 1, 1] // Bigger bounce for clicked easter egg
-                        : [1, 1.05, 1, 1.05, 1, 1, 1, 1, 1], // Normal bounce
+                      x: [
+                        Math.cos((startAngle) * Math.PI / 180) * radiusX,
+                        Math.cos((startAngle + 90) * Math.PI / 180) * radiusX,
+                        Math.cos((startAngle + 180) * Math.PI / 180) * radiusX,
+                        Math.cos((startAngle + 270) * Math.PI / 180) * radiusX,
+                        Math.cos((startAngle + 360) * Math.PI / 180) * radiusX
+                      ],
+                      y: [
+                        Math.sin((startAngle) * Math.PI / 180) * radiusY,
+                        Math.sin((startAngle + 90) * Math.PI / 180) * radiusY,
+                        Math.sin((startAngle + 180) * Math.PI / 180) * radiusY,
+                        Math.sin((startAngle + 270) * Math.PI / 180) * radiusY,
+                        Math.sin((startAngle + 360) * Math.PI / 180) * radiusY
+                      ]
                     }}
                     transition={{
                       duration: speed,
                       repeat: Infinity,
-                      ease: "easeInOut"
+                      ease: "linear"
                     }}
-                    onClick={() => handleSkillClick(skill)}
-                    whileHover={skill.includes('吹牛逼') ? { 
-                      scale: 1.1,
-                      rotate: [0, -2, 2, -2, 0], // Wiggle effect
-                    } : {}}
-                    whileTap={skill.includes('吹牛逼') ? { 
-                      scale: 0.8, // Contract animation on click
-                      rotate: 180, // Spin when clicked
-                    } : {}}
-                    initial={{ scale: 1 }}
                   >
-                    {getDisplaySkill(skill.trim())}
-                  </motion.span>
+                    <motion.button
+                      className={clsx(
+                        'w-24 h-24 rounded-full text-base font-bold',
+                        'border-2 shadow-lg backdrop-blur-sm',
+                        'transition-all duration-300',
+                        'hover:scale-110 hover:shadow-xl',
+                        'focus:outline-none focus:ring-2 focus:ring-offset-2',
+                        'flex items-center justify-center'
+                      )}
+                      style={getSkillStyle(skill)}
+                      onClick={() => handleSkillClick(skill)}
+                      whileHover={{ 
+                        scale: 1.1,
+                        transition: { duration: 0.2 }
+                      }}
+                      whileTap={{ 
+                        scale: 0.95,
+                        transition: { duration: 0.1 }
+                      }}
+                    >
+                      {getDisplaySkill(skill)}
+                    </motion.button>
+                  </motion.div>
                 </motion.div>
               );
             })}
