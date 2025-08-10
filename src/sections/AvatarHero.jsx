@@ -1,13 +1,57 @@
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
-import { useState } from 'react';
-import { tokens } from '../design-system/index.js';
+import { useState, useEffect } from 'react';
+import { tokens, Card } from '../design-system/index.js';
 import { portfolioData } from '../data/portfolio';
 import avatarImage from '../assets/images/Noma.png';
 import Galaxy from '../effects/Galaxy.jsx';
+import { weatherAPI, historyAPI } from '../network/index.js';
 
 const AvatarHero = ({ className }) => {
   const [clickedSkills, setClickedSkills] = useState(new Set());
+  
+  // Weather and History data states
+  const [weatherData, setWeatherData] = useState(null);
+  const [historyData, setHistoryData] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [weatherError, setWeatherError] = useState(null);
+  const [historyError, setHistoryError] = useState(null);
+
+  // Fetch weather and history data on component mount
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      try {
+        setWeatherLoading(true);
+        setWeatherError(null);
+        // Using Beijing coordinates as default
+        const data = await weatherAPI.getCurrentWeather(39.9042, 116.4074);
+        setWeatherData(data);
+      } catch (error) {
+        setWeatherError(error.message);
+        console.error('Weather fetch error:', error);
+      } finally {
+        setWeatherLoading(false);
+      }
+    };
+
+    const fetchHistoryData = async () => {
+      try {
+        setHistoryLoading(true);
+        setHistoryError(null);
+        const data = await historyAPI.getTodayInHistory();
+        setHistoryData(data);
+      } catch (error) {
+        setHistoryError(error.message);
+        console.error('History fetch error:', error);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    fetchWeatherData();
+    fetchHistoryData();
+  }, []);
 
   const handleSkillClick = (skill) => {
     if (skill.includes('吹牛逼')) {
@@ -57,6 +101,109 @@ const AvatarHero = ({ className }) => {
     };
   };
 
+  // Loading component with design system styling
+  const LoadingSpinner = () => (
+    <motion.div
+      className="flex items-center justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="w-4 h-4 border-2 rounded-full"
+        style={{
+          borderColor: `${tokens.colors.ui.border}40`,
+          borderTopColor: tokens.colors.background.accent,
+        }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      />
+    </motion.div>
+  );
+
+  // Weather Card Component
+  const WeatherCard = () => (
+    <Card
+      variant="filled"
+      size="sm"
+      className="backdrop-blur-sm border-opacity-30"
+      animate={true}
+    >
+      {weatherLoading ? (
+        <LoadingSpinner />
+      ) : weatherError ? (
+        <div className="text-center">
+          <p className="text-sm" style={{ color: tokens.colors.primary.textMuted }}>
+            Weather unavailable
+          </p>
+        </div>
+      ) : weatherData ? (
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center space-x-2">
+            <span className="text-2xl font-bold" style={{ color: tokens.colors.primary.text }}>
+              {Math.round(weatherData.current.temperature_2m)}°
+            </span>
+            <div className="text-xs" style={{ color: tokens.colors.primary.textSecondary }}>
+              <div>{weatherData.current.weather_description}</div>
+              <div>Feels {Math.round(weatherData.current.apparent_temperature)}°</div>
+            </div>
+          </div>
+          <div className="text-xs" style={{ color: tokens.colors.primary.textMuted }}>
+            {weatherData.location.timezone?.split('/')[1] || 'Local'}
+          </div>
+        </div>
+      ) : null}
+    </Card>
+  );
+
+  // History Card Component
+  const HistoryCard = () => (
+    <Card
+      variant="filled"
+      size="sm"
+      className="backdrop-blur-sm border-opacity-30 max-w-sm"
+      animate={true}
+    >
+      {historyLoading ? (
+        <LoadingSpinner />
+      ) : historyError ? (
+        <div className="text-center">
+          <p className="text-sm" style={{ color: tokens.colors.primary.textMuted }}>
+            History unavailable
+          </p>
+        </div>
+      ) : historyData ? (
+        <div className="space-y-3">
+          <h4 className="text-sm font-semibold text-center" style={{ color: tokens.colors.primary.text }}>
+            On This Day: {historyData.date}
+          </h4>
+          {historyData.data.Events && historyData.data.Events.length > 0 && (
+            <div className="space-y-2">
+              {historyData.data.Events.slice(0, 2).map((event, index) => (
+                <motion.div
+                  key={index}
+                  className="text-xs leading-relaxed p-2 rounded"
+                  style={{ 
+                    backgroundColor: `${tokens.colors.background.secondary}40`,
+                    color: tokens.colors.primary.textSecondary 
+                  }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <span className="font-medium" style={{ color: tokens.colors.background.accent }}>
+                    {event.year}:
+                  </span>{' '}
+                  {event.text.length > 100 ? `${event.text.substring(0, 100)}...` : event.text}
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : null}
+    </Card>
+  );
+
   return (
     <>
 
@@ -99,6 +246,26 @@ const AvatarHero = ({ className }) => {
           focal={[0.5, 0.5]}
         />
       </div>
+
+      {/* Weather Card - Top Right */}
+      <motion.div
+        className="absolute top-8 right-8 z-30"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.5 }}
+      >
+        <WeatherCard />
+      </motion.div>
+
+      {/* History Card - Top Left */}
+      <motion.div
+        className="absolute top-8 left-8 z-30"
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.7 }}
+      >
+        <HistoryCard />
+      </motion.div>
       
       {/* Avatar Container */}
       <motion.div
