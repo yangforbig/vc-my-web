@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Mail, Heart, Download } from 'lucide-react';
-import { Button, Input, Card, tokens, useBreakpoint } from '../../design-system/index.js';
+import { Button, Input, Card, tokens, useBreakpoint } from '../design-system/index.js';
 
 const DesignSystemShowcase = () => {
   const [inputValue, setInputValue] = useState('');

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import { useState } from 'react';
-import { tokens } from '../../design-system/index.js';
+import { tokens } from '../design-system/index.js';
 import { portfolioData } from '../data/portfolio';
 import avatarImage from '../assets/images/Noma.png';
 import Galaxy from '../effects/Galaxy.jsx';

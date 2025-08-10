@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import { ExternalLink, Star } from 'lucide-react';
-import { Card, Button, tokens } from '../../design-system/index.js';
+import { Card, Button, tokens } from '../design-system/index.js';
 
 const PortfolioGallery = ({ projects, className }) => {
   const containerVariants = {

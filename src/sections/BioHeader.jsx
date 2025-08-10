@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
-import { tokens } from '../../design-system/index.js';
+import { tokens } from '../design-system/index.js';
 
 const BioHeader = ({ name, tagline, className }) => {
   return (

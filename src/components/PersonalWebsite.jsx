@@ -5,7 +5,7 @@ import PortfolioGallery from '../sections/PortfolioGallery';
 import ContactSection from '../sections/ContactSection';
 import GlobalFooter from '../sections/GlobalFooter';
 import { portfolioData } from '../data/portfolio';
-import { tokens } from '../../design-system/index.js';
+import { tokens } from '../design-system/index.js';
 
 const PersonalWebsite = () => {
   return (

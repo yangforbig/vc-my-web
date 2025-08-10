@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import { Briefcase, GraduationCap } from 'lucide-react';
-import { tokens } from '../../design-system/index.js';
+import { tokens } from '../design-system/index.js';
 
 const ResumeTimeline = ({ timelineData, className }) => {
   const containerVariants = {

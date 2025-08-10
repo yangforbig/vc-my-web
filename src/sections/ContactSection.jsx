@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import clsx from 'clsx';
 import { Mail, Send, MapPin } from 'lucide-react';
-import { Button, Input, tokens } from '../../design-system/index.js';
+import { Button, Input, tokens } from '../design-system/index.js';
 
 const ContactSection = ({ email, location, className }) => {
   const [formData, setFormData] = useState({
