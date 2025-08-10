@@ -37,17 +37,16 @@ const AvatarHero = ({ className }) => {
     const isClicked = clickedSkills.has(skill);
     
     if (isClickableSkill && !isClicked) {
-      // Colorful "吹牛逼" text style
+      // Colorful "吹牛逼" text style - NO CSS animation
       return {
         background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3)',
         backgroundSize: '300% 300%',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
-        animation: 'rainbow 3s ease infinite',
         fontWeight: 'bold',
-        backgroundColor: `${tokens.colors.background.secondary}dd`, // Keep original background
-        border: `1px solid ${tokens.colors.ui.border}`, // Keep original border
+        backgroundColor: `${tokens.colors.background.secondary}dd`,
+        border: `1px solid ${tokens.colors.ui.border}`,
       };
     }
     
@@ -60,14 +59,7 @@ const AvatarHero = ({ className }) => {
 
   return (
     <>
-      {/* Add rainbow animation keyframes */}
-      <style jsx>{`
-        @keyframes rainbow {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-      `}</style>
+
       
       <motion.section 
         className={clsx(
@@ -198,8 +190,8 @@ const AvatarHero = ({ className }) => {
               const radiusX = minRadiusX + (index / (totalSkills - 1)) * (maxRadiusX - minRadiusX);
               const radiusY = minRadiusY + (index / (totalSkills - 1)) * (maxRadiusY - minRadiusY);
               
-              // Different speeds to prevent clustering
-              const speed = 20 + (index * 4); // Varied speeds
+              // Different speeds to prevent clustering - slower for less jarring motion
+              const speed = 30 + (index * 6); // Slower, more varied speeds
               
               // Stagger starting positions to spread them out
               const startAngle = (index / totalSkills) * 360 + (index * 45);
@@ -248,30 +240,51 @@ const AvatarHero = ({ className }) => {
                     transition={{
                       duration: speed,
                       repeat: Infinity,
-                      ease: "linear"
+                      ease: "easeInOut"
                     }}
                   >
                     <motion.button
                       className={clsx(
                         'w-24 h-24 rounded-full text-base font-bold',
                         'border-2 shadow-lg backdrop-blur-sm',
-                        'transition-all duration-300',
-                        'hover:scale-110 hover:shadow-xl',
+                        'transition-all duration-500',
+                        'hover:scale-105 hover:shadow-xl',
                         'focus:outline-none focus:ring-2 focus:ring-offset-2',
                         'flex items-center justify-center'
                       )}
                       style={getSkillStyle(skill)}
                       onClick={() => handleSkillClick(skill)}
+                      animate={skill.includes('吹牛逼') && !clickedSkills.has(skill) ? {
+                        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+                      } : {}}
+                      transition={skill.includes('吹牛逼') && !clickedSkills.has(skill) ? {
+                        backgroundPosition: {
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }
+                      } : {}}
                       whileHover={{ 
-                        scale: 1.1,
-                        transition: { duration: 0.2 }
+                        scale: 1.05,
+                        transition: { duration: 0.3, ease: "easeOut" }
                       }}
                       whileTap={{ 
-                        scale: 0.95,
-                        transition: { duration: 0.1 }
+                        scale: 0.98,
+                        transition: { duration: 0.2, ease: "easeOut" }
                       }}
                     >
-                      {getDisplaySkill(skill)}
+                      <motion.span
+                        key={getDisplaySkill(skill)}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        style={{ 
+                          transition: 'all 0.3s ease-out',
+                          willChange: 'auto'
+                        }}
+                      >
+                        {getDisplaySkill(skill)}
+                      </motion.span>
                     </motion.button>
                   </motion.div>
                 </motion.div>
