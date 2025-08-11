@@ -24,8 +24,8 @@ const AvatarHero = ({ className }) => {
       try {
         setWeatherLoading(true);
         setWeatherError(null);
-        // Using Beijing coordinates as default
-        const data = await weatherAPI.getCurrentWeather(39.9042, 116.4074);
+                 // Using New York coordinates as default
+         const data = await weatherAPI.getCurrentWeather(40.7128, -74.0060);
         setWeatherData(data);
       } catch (error) {
         setWeatherError(error.message);
